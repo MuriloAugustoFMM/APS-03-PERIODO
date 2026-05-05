@@ -445,7 +445,7 @@ public void setVehicleScreen(String mode){
     
     if(this.activeQry || this.activeDel){
         this.textFields.get(0).setVisible(false);
-        //this.loadIds();
+        this.loadIds(this.model.searchVehicle(), this.bodyDD.get(0));
         this.bodyDD.get(0).setVisible(true);
         
         this.textFields.get(1).setEnabled(false);
@@ -459,11 +459,11 @@ public void setVehicleScreen(String mode){
         this.textFields.get(3).setEnabled(true);
         this.textFields.get(4).setVisible(false);
         
-        //this.loadIds();
+        this.loadIds(this.model.searchTeam(),this.bodyDD.get(4));
         this.bodyDD.get(4).setVisible(true);
         if(this.activeUp){
-             this.textFields.get(0).setVisible(false);
-           // this.loadIds();
+            this.textFields.get(0).setVisible(false);
+            this.loadIds(this.model.searchVehicle(), this.bodyDD.get(0));
             this.bodyDD.get(0).setVisible(true);
         
         }
@@ -679,11 +679,26 @@ public void changeScreen(String screen) {
 }
 
 public void keyboardControl(KeyEvent e, char c, String s){
-    if(this.activeRace){
+
+    if(this.activeRace && e.getSource() == this.textFields.get(3)){
         this.verifyDate(e,c,s);
-    }else if(this.activePilot){
+    }else if(this.activePilot && e.getSource() == this.textFields.get(2)){
         this.verifyAge(e,c,s);
+    }else if(this.activeVehicle && e.getSource() == this.textFields.get(3)){
+        this.verifyPower(e,c,s);
     }
+}
+
+public void verifyPower(KeyEvent e, char c, String s){
+    if(c != KeyEvent.VK_BACK_SPACE && !Character.isDigit(c)) {
+        System.out.println("Caractere nao numerico detectado");
+        e.consume();
+    }else if (s.length() + 1 > 3 ) {
+        System.out.println("Potenca invalida, escopo permitido (0-999)");
+        e.consume();
+    }
+
+
 }
 
 public void verifyAge(KeyEvent e, char c, String s){
@@ -756,6 +771,17 @@ public void createRegister(){
             this.model.createPilot(pilotName,age,teamId);
             break;
         case "Veiculos":
+            String model, brand;
+            model = this.textFields.get(1).getText();
+            brand = this.textFields.get(2).getText();
+            int power, vehicleTeamId;
+            power = Integer.parseInt(this.textFields.get(3).getText());
+            if(power <= 0 ){
+                System.out.println("Potencia invalida");
+                break;
+            }
+            vehicleTeamId = Integer.parseInt(this.bodyDD.get(4).getSelectedItem());
+            this.model.createVehicle(model,brand,power,vehicleTeamId);
             
             
             break;
@@ -778,6 +804,7 @@ public void updateRegister(){
                 String city = this.textFields.get(2).getText();
                 String date = this.textFields.get(3).getText();
                 this.model.updateRace(id, name, city, date);
+                this.changeScreen(this.verifyScreen());
             }
             break;
         case "Times":
@@ -785,6 +812,7 @@ public void updateRegister(){
                 int id = Integer.parseInt(this.bodyDD.get(0).getSelectedItem());
                  String teamName = this.textFields.get(1).getText();
                 this.model.updateTeam(id, teamName);
+                this.changeScreen(this.verifyScreen());
             }   
             break;
         case "Pilotos":
@@ -798,9 +826,25 @@ public void updateRegister(){
                 int pilotAge = Integer.parseInt(this.textFields.get(2).getText());
                 int teamId = Integer.parseInt(this.bodyDD.get(3).getSelectedItem());
                 this.model.updatePilot(id,novoNome,pilotAge,teamId);
+                this.changeScreen(this.verifyScreen());
             }
             break;
         case "Veiculos":
+            if(this.bodyDD.get(0).getSelectedItem() != "") {
+                int id = Integer.parseInt(this.bodyDD.get(0).getSelectedItem());
+                String newModel, newBrand;
+                newModel = this.textFields.get(1).getText();
+                newBrand = this.textFields.get(2).getText();
+                int newPower, vehicleTeamId;
+                newPower = Integer.parseInt(this.textFields.get(3).getText());
+                if(newPower <= 0 ){
+                    System.out.println("Potencia invalida");
+                    break;
+                }
+                vehicleTeamId = Integer.parseInt(this.bodyDD.get(4).getSelectedItem());
+                this.model.updateVehicle(id,newModel,newBrand,newPower,vehicleTeamId);
+                this.changeScreen(this.verifyScreen());
+            }
             break;
         case "Resultados":
             break;
@@ -837,6 +881,10 @@ public void deleteRegister(){
             }
             break;
         case "Veiculos":
+            if(this.bodyDD.get(0).getSelectedItem() != "") {
+
+
+            }
             break;
         case "Resultados":
             break;
@@ -877,6 +925,14 @@ public void researchRegister(){
 
             break;
         case "Veiculos":
+            if(this.bodyDD.get(0).getSelectedItem() != ""){
+                int id = Integer.parseInt(this.bodyDD.get(0).getSelectedItem());
+                ArrayList<String> answer = this.model.searchVehicle(id);
+                this.textFields.get(1).setText(answer.get(0));
+                this.textFields.get(2).setText(answer.get(1));
+                this.textFields.get(3).setText(answer.get(2));
+                this.textFields.get(4).setText(answer.get(3));
+            }
             break;
         case "Resultados":
             break;

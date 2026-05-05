@@ -342,7 +342,7 @@ public void deleteTeam(int id) {
             pst.setInt(4, id);
             int rows = pst.executeUpdate();
             if (rows > 0) {
-                System.out.println("Corrida atualizada com sucesso!");
+                System.out.println("Piloto atualizado com sucesso!");
             }
         } catch (SQLException e) {
             System.out.println("Erro ao atualizar: " + e.getMessage());
@@ -371,14 +371,15 @@ public void createVehicle(String model, String brand, int power, int teamId) {
     } catch (SQLException ex) { ex.printStackTrace(); }
 }
 
-public void updateVehicle(int id, String model, String brand, int power) {
-    String sql = "UPDATE vehicles SET Vehicle_model = ?, Vehicle_brand = ?, Vehicle_power = ? WHERE Vehicle_id = ?";
+public void updateVehicle(int id, String model, String brand, int power, int teamId) {
+    String sql = "UPDATE vehicles SET Vehicle_model = ?, Vehicle_brand = ?, Vehicle_power = ?, Vehicle_team = ? WHERE Vehicle_id = ?";
     try {
         PreparedStatement pst = connection.prepareStatement(sql);
         pst.setString(1, model);
         pst.setString(2, brand);
         pst.setInt(3, power);
         pst.setInt(4, id);
+        pst.setInt(5,teamId);
         pst.executeUpdate();
     } catch (SQLException ex) { ex.printStackTrace(); }
 }
@@ -391,5 +392,57 @@ public void deleteVehicle(int id) {
         pst.executeUpdate();
     } catch (SQLException ex) { ex.printStackTrace(); }
 }
+
+    public ArrayList<Integer> searchVehicle() {
+        // 1. Criamos a lista que armazenará os IDs
+        ArrayList<Integer> ids = new ArrayList<>();
+        String sql = "SELECT Vehicle_id FROM vehicles";
+
+        try {
+            PreparedStatement pst = connection.prepareStatement(sql);
+            ResultSet rs = pst.executeQuery();
+
+            // 3. Percorre todos os resultados e adiciona na lista
+            while (rs.next()) {
+                ids.add(rs.getInt("Vehicle_id"));
+            }
+
+            System.out.println("Total de IDs coletados: " + ids.size());
+
+        } catch (SQLException ex) {
+            System.out.println("Erro ao listar IDs: " + ex.getMessage());
+        }
+
+        // 4. Retorna a lista preenchida (ou vazia se der erro)
+        return ids;
+    }
+
+    public ArrayList<String> searchVehicle(int vehicleId) {
+        // 1. Criamos a lista que armazenará os IDs
+        ArrayList<String> answer = new ArrayList<>();
+        String sql = "SELECT * FROM vehicles WHERE Vehicle_id = ?";
+
+        try {
+            PreparedStatement pst = connection.prepareStatement(sql);
+            pst.setInt(1,vehicleId);
+            ResultSet rs = pst.executeQuery();
+
+            // 3. Percorre todos os resultados e adiciona na lista
+            if (rs.next()) {
+                answer.add(rs.getString("Vehicle_model"));
+                answer.add(rs.getString("Vehicle_brand"));
+                answer.add(Integer.toString(rs.getInt("Vehicle_power")));
+                answer.add(Integer.toString(rs.getInt("Vehicle_team")));
+            }
+
+            System.out.println("Total de IDs coletados: " + answer.size());
+
+        } catch (SQLException ex) {
+            System.out.println("Erro ao listar IDs: " + ex.getMessage());
+        }
+
+        // 4. Retorna a lista preenchida (ou vazia se der erro)
+        return answer;
+    }
     
 }
