@@ -4,7 +4,7 @@
  */
 package corridassql;
 
-import com.mysql.jdbc.ResultSet;
+import java.sql.ResultSet;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -123,6 +123,15 @@ public class Model {
     }
     
     public void updateRace(int id, String novoNome, String novaCidade, String novaData) {
+
+        //FORMATANDO A DATA
+        DateTimeFormatter brFormat = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+        LocalDate formatedDate = LocalDate.parse(novaData, brFormat);
+
+        java.sql.Date dateSql = java.sql.Date.valueOf(formatedDate);
+
+
     // O SQL usa o WHERE para garantir que você não atualize a tabela inteira por engano!
     String sql = "UPDATE race SET Race_name = ?, Race_city = ?, Race_date = ? WHERE Race_id = ?";
 
@@ -135,7 +144,7 @@ public class Model {
         
         // Usando a lógica de conversão de data que vimos antes
         java.time.LocalDate data = java.time.LocalDate.parse(novaData, java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-        pst.setObject(3, data);
+        pst.setObject(3, dateSql);
         
         // O quarto '?' é o ID no WHERE
         pst.setInt(4, id);
@@ -221,7 +230,7 @@ public ArrayList<String> searchTeam(int id){
             PreparedStatement pst = connection.prepareStatement(sql);
             pst.setInt(1, id);
             // 2. Executa a query
-            ResultSet rs = (ResultSet) pst.executeQuery();
+            ResultSet rs = pst.executeQuery();
             if (rs.next()) {
                 // Coleta os dados das colunas (ajuste os nomes conforme seu banco)
                 String teamName = rs.getString("Team_name");
@@ -245,6 +254,109 @@ public void deleteTeam(int id) {
         pst.setInt(1, id);
         pst.executeUpdate();
     } catch (SQLException ex) { ex.printStackTrace(); }
+}
+
+    public void createPilot(String name, int age, int teamId){
+        System.out.println("CHAMANDO FUNCAO CREATE Pilot");
+
+        try{
+            String sql = "INSERT INTO pilots (Pilot_name,Pilot_age,Pilot_team) VALUES (?,?,?)";
+            PreparedStatement pst = connection.prepareStatement(sql);
+            pst.setString(1, name);
+            pst.setInt(2,age);
+            pst.setInt(3,teamId);
+            pst.executeUpdate();
+            System.out.println("REGISTRADO COM SUCESSO");
+        }catch(SQLException ex){
+            ex.printStackTrace();
+
+        }
+
+    }
+    public ArrayList<Integer> searchPilot() {
+        // 1. Criamos a lista que armazenará os IDs
+        ArrayList<Integer> ids = new ArrayList<>();
+        String sql = "SELECT Pilot_id FROM pilots";
+
+        try {
+            PreparedStatement pst = connection.prepareStatement(sql);
+
+            // 2. Executa a query
+            ResultSet rs = (ResultSet) pst.executeQuery();
+
+            // 3. Percorre todos os resultados e adiciona na lista
+            while (rs.next()) {
+                ids.add(rs.getInt("Pilot_id"));
+            }
+
+            System.out.println("Total de IDs coletados: " + ids.size());
+
+        } catch (SQLException ex) {
+            System.out.println("Erro ao listar IDs: " + ex.getMessage());
+        }
+
+        // 4. Retorna a lista preenchida (ou vazia se der erro)
+        return ids;
+    }
+
+    public ArrayList<String> searchPilot(Integer pilotId) {
+        // 1. Criamos a lista que armazenará os IDs
+        ArrayList<String> answer = new ArrayList<>();
+        String sql = "SELECT * FROM pilots WHERE Pilot_id = ?";
+
+        try {
+            PreparedStatement pst = connection.prepareStatement(sql);
+            pst.setInt(1,pilotId);
+            // 2. Executa a query
+            ResultSet rs = (ResultSet) pst.executeQuery();
+
+            // 3. Percorre todos os resultados e adiciona na lista
+            if (rs.next()) {
+                answer.add(rs.getString("Pilot_name"));
+                answer.add(Integer.toString(rs.getInt("Pilot_age")));
+                answer.add(Integer.toString(rs.getInt("Pilot_team")));
+            }
+
+            System.out.println("Total de IDs coletados: " + answer.size());
+
+        } catch (SQLException ex) {
+            System.out.println("Erro ao listar IDs: " + ex.getMessage());
+        }
+
+        // 4. Retorna a lista preenchida (ou vazia se der erro)
+        return answer;
+    }
+
+    public void updatePilot(int id, String novoNome, int novaIdade, int novoTime) {
+
+        // O SQL usa o WHERE para garantir que você não atualize a tabela inteira por engano!
+        String sql = "UPDATE pilots SET Pilot_name = ?, Pilot_age = ?, Pilot_team = ? WHERE Pilot_id = ?";
+
+        try {
+            PreparedStatement pst = connection.prepareStatement(sql);
+
+            // Preenchendo os novos valores
+            pst.setString(1, novoNome);
+            pst.setInt(2, novaIdade);
+            pst.setInt(3, novoTime);
+            pst.setInt(4, id);
+            int rows = pst.executeUpdate();
+            if (rows > 0) {
+                System.out.println("Corrida atualizada com sucesso!");
+            }
+        } catch (SQLException e) {
+            System.out.println("Erro ao atualizar: " + e.getMessage());
+        }
+    }
+
+public void deletePilot(int id){
+        String sql = "DELETE FROM pilots WHERE Pilot_id = ?";
+        try{
+            PreparedStatement pst = connection.prepareStatement(sql);
+            pst.setInt(1,id);
+            pst.executeUpdate();
+            System.out.println(id + " Excluido com sucesso");
+        }catch(SQLException ex) {ex.printStackTrace();}
 }
 
 public void createVehicle(String model, String brand, int power, int teamId) {

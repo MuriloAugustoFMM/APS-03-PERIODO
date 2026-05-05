@@ -40,7 +40,7 @@ public class DropDown{
             this.bodyDD.add(new Choice());
             this.bodyDD.get(i).setBounds(130, (160 + 20 * i),230,20);
             this.bodyDD.get(i).setVisible(false);
-            this.bodyDD.get(i).add("TESTE");
+
         }
     }
     

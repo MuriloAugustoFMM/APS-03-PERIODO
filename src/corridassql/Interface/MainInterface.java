@@ -128,15 +128,27 @@ public void renderTextFields(){
         for(TextField t : this.textFields){
            this.pMain.add(t);
         }
-        
+
+        this.textFields.get(2).addKeyListener(new KeyAdapter(){
+            public void keyTyped(KeyEvent e){
+
+                char c = e.getKeyChar();
+                String s = MainInterface.this.textFields.get(2).getText();
+                MainInterface.this.keyboardControl(e,c,s);
+            }
+        });
+
+
         this.textFields.get(3).addKeyListener(new KeyAdapter(){
             public void keyTyped(KeyEvent e){
                      
             char c = e.getKeyChar();
-            String str = MainInterface.this.textFields.get(3).getText();
-            MainInterface.this.verifyDate(e, c, str);
+            String s = MainInterface.this.textFields.get(3).getText();
+            MainInterface.this.keyboardControl(e,c,s);
             }
         });
+
+
 }
 
 public void renderPanels(){
@@ -367,7 +379,7 @@ public void setPilotScreen(String mode){
         
         this.textFields.get(0).setVisible(false);
         
-        //this.loadIds();
+        this.loadIds(this.model.searchPilot(),this.bodyDD.get(0));
         this.bodyDD.get(0).setVisible(true);
         
         this.textFields.get(1).setEnabled(false);
@@ -380,10 +392,9 @@ public void setPilotScreen(String mode){
         this.textFields.get(0).setEnabled(false);
         this.textFields.get(1).setEnabled(true);
         this.textFields.get(2).setEnabled(true);
-        
         this.textFields.get(3).setVisible(false);
-        
-        //this.loadIds();
+
+        this.loadIds(this.model.searchTeam(), this.bodyDD.get(3));
         this.bodyDD.get(3).setVisible(true);
         
         if(this.activeUp){
@@ -606,30 +617,6 @@ public void setDeleteMode(){
     this.printMode();
 }
 
-public boolean changeMode(){
-    if(this.activeCreate){
-        
-        return true;
-    }
-    
-    if(this.activeDel){
-        
-        return true;
-    }
-    
-    if(this.activeQry){
-        
-        return true;
-    }
-    
-    if(this.activeUp){
-        
-        return true;
-    }
-    
-    return false;
-    
-}
 
 public String verifyMode(){
     if(this.activeCreate) return "CREATE";
@@ -649,47 +636,66 @@ public String verifyScreen(){
 }
 
 
-public void changeScreen(String screen){
-            // LIMPA A TELA
-            this.clearScreen();
-            
-            // COLOCA O MODO DEFAULT CASO NAO TENHA NADA SELECIONADO
-            if(this.verifyMode() == "") this.setDefaultMode();
-            
-            //VERIFICA QUAL TELA ESTÁ SELECIONADA NO MENU DROP-DOWN
-            switch (screen){
-                
-                case "Corridas":
-                    System.out.println("Corrida");
-                    this.setRaceScreen(this.verifyMode());
-                        break;
-                
-                case "Times":
-                    System.out.println("Time");
-                    this.setTeamsScreen(this.verifyMode());
-                    
-                        break;
-                
-                case "Pilotos":
-                    System.out.println("Pilot");
-                    this.setPilotScreen(this.verifyMode());
-                        break;
-                        
-                case "Veiculos":
-                    System.out.println("Veiculo");
-                    this.setVehicleScreen(this.verifyMode());
-                        break;
-                        
-                case "Resultados":
-                    this.setResultsScreen(this.verifyMode());
-                    break;
-                default:
-                    System.out.println("Tela nao encontrada");
-                    break;
-            }
-            
-            
-        }
+public void changeScreen(String screen) {
+    // LIMPA A TELA
+    this.clearScreen();
+
+    // COLOCA O MODO DEFAULT CASO NAO TENHA NADA SELECIONADO
+    if (this.verifyMode() == "") this.setDefaultMode();
+
+    //VERIFICA QUAL TELA ESTÁ SELECIONADA NO MENU DROP-DOWN
+    switch (screen) {
+
+        case "Corridas":
+            System.out.println("Corrida");
+            this.setRaceScreen(this.verifyMode());
+            break;
+
+        case "Times":
+            System.out.println("Time");
+            this.setTeamsScreen(this.verifyMode());
+
+            break;
+
+        case "Pilotos":
+            System.out.println("Pilot");
+            this.setPilotScreen(this.verifyMode());
+            break;
+
+        case "Veiculos":
+            System.out.println("Veiculo");
+            this.setVehicleScreen(this.verifyMode());
+            break;
+
+        case "Resultados":
+            this.setResultsScreen(this.verifyMode());
+            break;
+        default:
+            System.out.println("Tela nao encontrada");
+            break;
+    }
+
+
+}
+
+public void keyboardControl(KeyEvent e, char c, String s){
+    if(this.activeRace){
+        this.verifyDate(e,c,s);
+    }else if(this.activePilot){
+        this.verifyAge(e,c,s);
+    }
+}
+
+public void verifyAge(KeyEvent e, char c, String s){
+    if(c != KeyEvent.VK_BACK_SPACE && !Character.isDigit(c)){
+        System.out.println("Caractere nao numerico detectado");
+        e.consume();
+    }else if (s.length() + 1 >= 3 ) {
+        System.out.println("Idade inválida, escopo permitido (0-99)");
+        e.consume();
+    }
+
+}
 
 public void verifyDate(KeyEvent e, char c, String s){
     if(c != KeyEvent.VK_BACK_SPACE && !Character.isDigit(c)){
@@ -729,14 +735,25 @@ public void createRegister(){
             raceName = this.textFields.get(1).getText();
             cityName = this.textFields.get(2).getText();
             raceDate = this.textFields.get(3).getText();
-            //this.model.stareBD();
+
             this.model.createRace(raceName, cityName, raceDate);
             break;
         case "Times":
-            String teamName = this.textFields.get(0).getText();
+            String teamName = this.textFields.get(1).getText();
             this.model.createTeam(teamName);
             break;
         case "Pilotos":
+            int age = Integer.parseInt(this.textFields.get(2).getText());
+            if(age <= 17){
+                System.out.println("Idade inválida, necessário 18 anos");
+                break;
+            }
+            if(this.bodyDD.get(3).getSelectedItem().equals("")) break;
+            int teamId = Integer.parseInt(this.bodyDD.get(3).getSelectedItem());
+
+            String pilotName = this.textFields.get(1).getText();
+
+            this.model.createPilot(pilotName,age,teamId);
             break;
         case "Veiculos":
             
@@ -771,6 +788,17 @@ public void updateRegister(){
             }   
             break;
         case "Pilotos":
+            if(Integer.parseInt(this.textFields.get(2).getText()) <= 17){
+                System.out.println("Idade inválida, necessário 18 anos");
+                break;
+            }
+            if(this.bodyDD.get(0).getSelectedItem() != ""){
+                int id = Integer.parseInt(this.bodyDD.get(0).getSelectedItem());
+                String novoNome = this.textFields.get(1).getText();
+                int pilotAge = Integer.parseInt(this.textFields.get(2).getText());
+                int teamId = Integer.parseInt(this.bodyDD.get(3).getSelectedItem());
+                this.model.updatePilot(id,novoNome,pilotAge,teamId);
+            }
             break;
         case "Veiculos":
             break;
@@ -798,9 +826,15 @@ public void deleteRegister(){
             if(this.bodyDD.get(0).getSelectedItem() != ""){
                 int id = Integer.parseInt(this.bodyDD.get(0).getSelectedItem());
                 this.model.deleteTeam(id);
+                this.changeScreen(this.verifyScreen());
             }
             break;
         case "Pilotos":
+            if(this.bodyDD.get(0).getSelectedItem() != "") {
+                int id = Integer.parseInt(this.bodyDD.get(0).getSelectedItem());
+                this.model.deletePilot(id);
+                this.changeScreen(this.verifyScreen());
+            }
             break;
         case "Veiculos":
             break;
@@ -833,6 +867,14 @@ public void researchRegister(){
             }  
             break;
         case "Pilotos":
+                if(this.bodyDD.get(0).getSelectedItem() != ""){
+                    int id = Integer.parseInt(this.bodyDD.get(0).getSelectedItem());
+                    ArrayList<String> answer = this.model.searchPilot(id);
+                    this.textFields.get(1).setText(answer.get(0));
+                    this.textFields.get(2).setText(answer.get(1));
+                    this.textFields.get(3).setText(answer.get(2));
+                }
+
             break;
         case "Veiculos":
             break;
@@ -847,7 +889,7 @@ public void researchRegister(){
 }
 
 public void loadIds(ArrayList<Integer> ids, Choice c){
-    this.bodyDD.get(0).removeAll();
+    c.removeAll();
     c.add("");
     for(int i : ids){
         System.out.println(i);
