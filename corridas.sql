@@ -32,7 +32,7 @@ CREATE TABLE `pilots` (
   `Pilot_name` varchar(255) NOT NULL,
   `Pilot_age` int DEFAULT NULL,
   `Pilot_team` int DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -45,7 +45,7 @@ CREATE TABLE `race` (
   `Race_name` varchar(255) NOT NULL,
   `Race_city` varchar(255) DEFAULT NULL,
   `Race_date` date DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Despejando dados para a tabela `race`
@@ -60,7 +60,7 @@ INSERT INTO `race` (`Race_id`, `Race_name`, `Race_city`, `Race_date`) VALUES
 -- Estrutura para tabela `races_link`
 --
 
-CREATE TABLE `races_link` (
+CREATE TABLE races_links (
   `Race_link_id` int NOT NULL,
   `Race_id` int NOT NULL,
   `Pilot_id` int NOT NULL,
@@ -69,7 +69,7 @@ CREATE TABLE `races_link` (
   `First_round` varchar(50) DEFAULT NULL,
   `Second_round` varchar(50) DEFAULT NULL,
   `Sum_rounds` varchar(50) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -80,7 +80,7 @@ CREATE TABLE `races_link` (
 CREATE TABLE `teams` (
   `Team_id` int NOT NULL,
   `Team_name` varchar(255) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -94,7 +94,7 @@ CREATE TABLE `vehicles` (
   `Vehicle_brand` varchar(255) NOT NULL,
   `Vehicle_power` int DEFAULT NULL,
   `Vehicle_team` int DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Índices para tabelas despejadas
@@ -116,7 +116,7 @@ ALTER TABLE `race`
 --
 -- Índices de tabela `races_link`
 --
-ALTER TABLE `races_link`
+ALTER TABLE races_links
   ADD PRIMARY KEY (`Race_link_id`),
   ADD KEY `fk_link_race` (`Race_id`),
   ADD KEY `fk_link_pilot` (`Pilot_id`),
@@ -155,7 +155,7 @@ ALTER TABLE `race`
 --
 -- AUTO_INCREMENT de tabela `races_link`
 --
-ALTER TABLE `races_link`
+ALTER TABLE races_links
   MODIFY `Race_link_id` int NOT NULL AUTO_INCREMENT;
 
 --
@@ -183,7 +183,7 @@ ALTER TABLE `pilots`
 --
 -- Restrições para tabelas `races_link`
 --
-ALTER TABLE `races_link`
+ALTER TABLE races_links
   ADD CONSTRAINT `fk_link_pilot` FOREIGN KEY (`Pilot_id`) REFERENCES `pilots` (`Pilot_id`),
   ADD CONSTRAINT `fk_link_race` FOREIGN KEY (`Race_id`) REFERENCES `race` (`Race_id`),
   ADD CONSTRAINT `fk_link_team` FOREIGN KEY (`Team_id`) REFERENCES `teams` (`Team_id`),

@@ -16,11 +16,10 @@ import corridassql.Model;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
-
-        
 public class MainInterface {
     
 private Frame window = new MainFrame();
+private Label lCon;
 private ArrayList<Label> bodyLabels = new Labels().getBodyLabels();
 private ArrayList<Label> menuLabels = new Labels().getMenuLabels();
 private ArrayList<Panel> containers = new Containers().getContainers();
@@ -34,6 +33,7 @@ private Choice menuDD;
 private Panel pMenu, pMain;
 private Boolean activeRace, activeTeam, activePilot, activeVehicle, activeCreate, activeUp,activeRes, activeQry, activeDel;
 private Model model;
+
 
 public MainInterface(Model model){
     pMenu = this.containers.get(0);
@@ -110,6 +110,11 @@ public void renderLabels(){
         table.setText("Selecione a tabela: ");
 
         this.pMenu.add(table);
+
+        this.lCon = new Label("");
+        this.lCon.setBounds(50,370,60,25);
+        this.lCon.setFont(new Font(Font.SERIF,1,32));
+        this.pMain.add(lCon);
         
         
 }
@@ -245,6 +250,7 @@ public void clearScreen(){
     this.activeTeam = false;
     this.activeVehicle = false;
     this.activeRes = false;
+    this.lCon.setText("");
 } 
 
 public void clearMode(){
@@ -690,8 +696,31 @@ public void changeScreen(String screen) {
 
 }
 
+    public void displayCron() {
+        new Thread(() -> {
+            long inicio = System.currentTimeMillis() / 1000;
+
+            while (!this.bcrono.getLabel().equals("Somar")) {
+                long agora = System.currentTimeMillis() / 1000;
+                long tempo = agora - inicio;
+
+                // Atualiza a Label
+                this.lCon.setText(tempo + " s");
+
+                try {
+                    // Faz a thread "dormir" por 1 segundo para não fritar o processador
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    break;
+                }
+            }
+        }).start(); // Inicia a thread separada
+    }
+
 public boolean cron(){
+
     if(this.bcrono.getLabel().equals("START")) {
+        displayCron();
         this.timeRound1 = System.currentTimeMillis();
         this.bcrono.setLabel("Volta 01");
         return false;
@@ -907,6 +936,22 @@ public void updateRegister(){
             }
             break;
         case "Resultados":
+            if(this.bodyDD.get(0).getSelectedItem() != "") {
+                int id = Integer.parseInt(this.bodyDD.get(0).getSelectedItem());
+                int resRace, resPilot, resTeam, resVehicle, resRound01, resRound02, resTotal;
+                if(this.bcrono.getLabel().equals("Somar") && this.timeRound1 != 0 && this.timeRound2 != 0){
+
+                    resRace = Integer.parseInt(this.bodyDD.get(1).getSelectedItem());
+                    resPilot = Integer.parseInt(this.bodyDD.get(2).getSelectedItem());
+                    resTeam = Integer.parseInt(this.bodyDD.get(3).getSelectedItem());
+                    resVehicle = Integer.parseInt(this.bodyDD.get(4).getSelectedItem());
+                    resRound01 =  (int) this.timeRound1;
+                    resRound02 = (int) this.timeRound2;
+                    resTotal = (int) (this.timeRound1 + this.timeRound2) / 1000;
+                    this.model.updateResult(id,resRace,resPilot,resTeam,resVehicle,resRound01,resRound02,resTotal);
+                    this.changeScreen(this.verifyScreen());
+                }
+            }
             break;
         default:
             System.out.println("Ação nao encontrada");

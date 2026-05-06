@@ -446,7 +446,7 @@ public void deleteVehicle(int id) {
     }
 
     public void createResult(int race, int pilot, int team, int vehicle, int round1, int round2, int total) {
-        String sql = "INSERT INTO race_links (Race_id, Pilot_id, Team_id, Vehicle_id,Fist_round_time,Sec_round_time,Sum_rounds) VALUES (?,?,?,?,?,?,?)";
+        String sql = "INSERT INTO races_links (Race_id, Pilot_id, Team_id, Vehicle_id,First_round,Second_round,Sum_rounds) VALUES (?,?,?,?,?,?,?)";
         try {
             PreparedStatement pst = connection.prepareStatement(sql);
             pst.setInt(1,race);
@@ -463,7 +463,7 @@ public void deleteVehicle(int id) {
     public ArrayList<Integer> searchResult() {
         // 1. Criamos a lista que armazenará os IDs
         ArrayList<Integer> ids = new ArrayList<>();
-        String sql = "SELECT Race_link_id FROM race_links";
+        String sql = "SELECT Race_link_id FROM races_links";
 
         try {
             PreparedStatement pst = connection.prepareStatement(sql);
@@ -487,7 +487,7 @@ public void deleteVehicle(int id) {
     public ArrayList<String> searchResult(int linkId) {
         // 1. Criamos a lista que armazenará os IDs
         ArrayList<String> answer = new ArrayList<>();
-        String sql = "SELECT * FROM race_links WHERE Race_link_id= ?";
+        String sql = "SELECT * FROM races_links WHERE Race_link_id = ?";
 
         try {
             PreparedStatement pst = connection.prepareStatement(sql);
@@ -500,8 +500,8 @@ public void deleteVehicle(int id) {
                 answer.add(Integer.toString(rs.getInt("Pilot_id")));
                 answer.add(Integer.toString(rs.getInt("Team_id")));
                 answer.add(Integer.toString(rs.getInt("Vehicle_id")));
-                answer.add(Integer.toString(rs.getInt("Fist_round_time")));
-                answer.add(Integer.toString(rs.getInt("Sec_round_time")));
+                answer.add(Integer.toString(rs.getInt("First_round")));
+                answer.add(Integer.toString(rs.getInt("Second_round")));
                 answer.add(Integer.toString(rs.getInt("Sum_rounds")));
             }
 
@@ -514,9 +514,27 @@ public void deleteVehicle(int id) {
         // 4. Retorna a lista preenchida (ou vazia se der erro)
         return answer;
     }
+    public void updateResult(int id,int race, int pilot, int team, int vehicle, int round1, int round2, int total) {
+        String sql = "UPDATE races_links SET Race_id = ?, Pilot_id = ?, Team_id = ?, Vehicle_id = ?,First_round = ?" +
+                ",Second_round = ?,Sum_rounds = ? WHERE Race_link_id= ?";
+        try {
+            PreparedStatement pst = connection.prepareStatement(sql);
+            pst.setInt(1,race);
+            pst.setInt(2, pilot);
+            pst.setInt(3, team);
+            pst.setInt(4, vehicle);
+            pst.setInt(5, round1);
+            pst.setInt(6, round2);
+            pst.setInt(7, total);
+            pst.setInt(8, id);
+
+            pst.executeUpdate();
+        } catch (SQLException ex) { ex.printStackTrace(); }
+    }
+
 
     public void deleteResult(int id) {
-        String sql = "DELETE FROM race_links WHERE Race_link_id = ?";
+        String sql = "DELETE FROM races_links WHERE Race_link_id = ?";
         try {
             PreparedStatement pst = connection.prepareStatement(sql);
             pst.setInt(1, id);
