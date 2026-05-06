@@ -444,5 +444,17 @@ public void deleteVehicle(int id) {
         // 4. Retorna a lista preenchida (ou vazia se der erro)
         return answer;
     }
+
+    public void createResult(String model, String brand, int power, int teamId) {
+        String sql = "INSERT INTO vehicles (Vehicle_model, Vehicle_brand, Vehicle_power, Vehicle_team) VALUES (?,?,?,?)";
+        try {
+            PreparedStatement pst = connection.prepareStatement(sql);
+            pst.setString(1, model);
+            pst.setString(2, brand);
+            pst.setInt(3, power);
+            pst.setInt(4, teamId); // FK para o time
+            pst.executeUpdate();
+        } catch (SQLException ex) { ex.printStackTrace(); }
+    }
     
 }

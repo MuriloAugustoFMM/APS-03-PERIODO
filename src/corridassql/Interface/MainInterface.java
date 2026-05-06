@@ -7,18 +7,11 @@ package corridassql.Interface;
  *
  * @author flixz
  */
-import corridassql.Interface.Containers;
-import corridassql.Interface.Labels;
-import corridassql.Interface.MainFrame;
-import corridassql.Interface.TextFields;
-import corridassql.Interface.Buttons;
-import corridassql.Interface.DropDown;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.function.Consumer;
+
 import corridassql.Model;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -35,11 +28,14 @@ private ArrayList<TextField> textFields = new TextFields().getTextFields();
 private ArrayList<Button> menuButtons = new Buttons().getMenuButtons();
 private ArrayList<Choice> bodyDD = new DropDown().getBodyDD();
 private Button actionButton = new Buttons().getActionButton();
-private Button bCreate, bResearch, bUpdate, bDelete;
+private Button bCreate, bResearch, bUpdate, bDelete, bRound1, bRound2;
+private long cache,timeRound1, timeRound2;
 private Choice menuDD;
 private Panel pMenu, pMain;
 private Boolean activeRace, activeTeam, activePilot, activeVehicle, activeCreate, activeUp,activeRes, activeQry, activeDel;
+private Boolean activeCache;
 private Model model;
+
 private int[] idTest = {1,2,3,4,5,6,7,8,9,10}; 
 public MainInterface(Model model){
     pMenu = this.containers.get(0);
@@ -194,6 +190,22 @@ public void renderButtons(){
     
     this.pMenu.add(this.actionButton);
 
+    bRound1 = new Button();
+    bRound1.setLabel("Volta1");
+    bRound1.setBounds(70,350,70,20);
+    this.bRound1.addActionListener(e ->{
+        //
+    });
+    this.pMain.add(bRound1);
+
+    bRound2 = new Button();
+    bRound2.setLabel("Volta2");
+    bRound2.setBounds(200,350,70,20);
+    this.bRound2.addActionListener(e ->{
+        //
+    });
+    this.pMain.add(bRound2);
+
 }
 
 public void renderDropDown(){
@@ -234,6 +246,8 @@ public void clearScreen(){
       this.bodyLabels.get(i).setVisible(false);
       this.bodyDD.get(i).setVisible(false);
   }
+    this.bRound1.setVisible(false);
+    this.bRound2.setVisible(false);
     this.activePilot = false;
     this.activeRace = false;
     this.activeTeam = false;
@@ -475,7 +489,10 @@ public void setVehicleScreen(String mode){
 }
 
 public void setResultsScreen(String mode){
-    
+
+    this.bRound2.setVisible(true);
+    this.bRound1.setVisible(true);
+
     this.bodyLabels.get(0).setText("Id:");
     this.bodyLabels.get(0).setVisible(true);
 
@@ -532,20 +549,23 @@ public void setResultsScreen(String mode){
         this.textFields.get(0).setEnabled(false);
         
         this.textFields.get(1).setVisible(false);
-       // this.loadIds();
+        this.loadIds(this.model.searchRace(),this.bodyDD.get(1));
         this.bodyDD.get(1).setVisible(true);
         this.textFields.get(2).setVisible(false);
-       // this.loadIds();
+
+        this.loadIds(this.model.searchPilot(),this.bodyDD.get(2));
         this.bodyDD.get(2).setVisible(true);
         this.textFields.get(3).setVisible(false);
-       // this.loadIds();
+
+        this.loadIds(this.model.searchTeam(),this.bodyDD.get(3));
         this.bodyDD.get(3).setVisible(true);
         this.textFields.get(4).setVisible(false);
-       // this.loadIds();
+
+        this.loadIds(this.model.searchVehicle(),this.bodyDD.get(4));
         this.bodyDD.get(4).setVisible(true);
-        this.textFields.get(5).setEnabled(true);
-        this.textFields.get(6).setEnabled(true);
-        this.textFields.get(7).setEnabled(true);
+        this.textFields.get(5).setEnabled(false);
+        this.textFields.get(6).setEnabled(false);
+        this.textFields.get(7).setEnabled(false);
         if(this.activeUp){
             this.textFields.get(0).setVisible(false);
           //  this.loadIds();
@@ -678,6 +698,14 @@ public void changeScreen(String screen) {
 
 }
 
+public long cron(){
+    if(boolVolta1){
+        this.cache = System.currentTimeMillis() - this.cache;
+        return cache;
+    }
+    cache = System.currentTimeMillis();
+}
+
 public void keyboardControl(KeyEvent e, char c, String s){
 
     if(this.activeRace && e.getSource() == this.textFields.get(3)){
@@ -752,15 +780,20 @@ public void createRegister(){
             raceDate = this.textFields.get(3).getText();
 
             this.model.createRace(raceName, cityName, raceDate);
+            this.changeScreen(this.verifyScreen());
             break;
+
         case "Times":
             String teamName = this.textFields.get(1).getText();
             this.model.createTeam(teamName);
+            this.changeScreen(this.verifyScreen());
             break;
+
         case "Pilotos":
             int age = Integer.parseInt(this.textFields.get(2).getText());
             if(age <= 17){
                 System.out.println("Idade inválida, necessário 18 anos");
+                this.changeScreen(this.verifyScreen());
                 break;
             }
             if(this.bodyDD.get(3).getSelectedItem().equals("")) break;
@@ -769,6 +802,7 @@ public void createRegister(){
             String pilotName = this.textFields.get(1).getText();
 
             this.model.createPilot(pilotName,age,teamId);
+            this.changeScreen(this.verifyScreen());
             break;
         case "Veiculos":
             String model, brand;
@@ -778,12 +812,12 @@ public void createRegister(){
             power = Integer.parseInt(this.textFields.get(3).getText());
             if(power <= 0 ){
                 System.out.println("Potencia invalida");
+
                 break;
             }
             vehicleTeamId = Integer.parseInt(this.bodyDD.get(4).getSelectedItem());
             this.model.createVehicle(model,brand,power,vehicleTeamId);
-            
-            
+            this.changeScreen(this.verifyScreen());
             break;
         case "Resultados":
             break;
@@ -851,8 +885,6 @@ public void updateRegister(){
         default:
             System.out.println("Ação nao encontrada");
             break;
-            
-        
     }
 }
 
@@ -882,7 +914,9 @@ public void deleteRegister(){
             break;
         case "Veiculos":
             if(this.bodyDD.get(0).getSelectedItem() != "") {
-
+                int id = Integer.parseInt(this.bodyDD.get(0).getSelectedItem());
+                this.model.deleteVehicle(id);
+                this.changeScreen(this.verifyScreen());
 
             }
             break;

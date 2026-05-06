@@ -28,7 +28,7 @@ import corridassql.Model;
 
 */
 
-public class Corrida{
+public class  Corrida{
 	    
     private Model model = new Model();
               
@@ -40,8 +40,6 @@ public class Corrida{
 		
                 
             MainInterface main = new MainInterface(corrida.model);
-                
-                
 
     }
 }
