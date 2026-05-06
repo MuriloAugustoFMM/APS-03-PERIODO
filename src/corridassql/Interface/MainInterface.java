@@ -28,15 +28,13 @@ private ArrayList<TextField> textFields = new TextFields().getTextFields();
 private ArrayList<Button> menuButtons = new Buttons().getMenuButtons();
 private ArrayList<Choice> bodyDD = new DropDown().getBodyDD();
 private Button actionButton = new Buttons().getActionButton();
-private Button bCreate, bResearch, bUpdate, bDelete, bRound1, bRound2;
-private long cache,timeRound1, timeRound2;
+private Button bCreate, bResearch, bUpdate, bDelete, bcrono;
+private long timeRound1 = 0, timeRound2 = 0;
 private Choice menuDD;
 private Panel pMenu, pMain;
 private Boolean activeRace, activeTeam, activePilot, activeVehicle, activeCreate, activeUp,activeRes, activeQry, activeDel;
-private Boolean activeCache;
 private Model model;
 
-private int[] idTest = {1,2,3,4,5,6,7,8,9,10}; 
 public MainInterface(Model model){
     pMenu = this.containers.get(0);
     pMain = this.containers.get(1);
@@ -190,21 +188,13 @@ public void renderButtons(){
     
     this.pMenu.add(this.actionButton);
 
-    bRound1 = new Button();
-    bRound1.setLabel("Volta1");
-    bRound1.setBounds(70,350,70,20);
-    this.bRound1.addActionListener(e ->{
-        //
+    bcrono = new Button();
+    bcrono.setLabel("START");
+    bcrono.setBounds(200,350,70,20);
+    this.bcrono.addActionListener(e ->{
+        this.cron();
     });
-    this.pMain.add(bRound1);
-
-    bRound2 = new Button();
-    bRound2.setLabel("Volta2");
-    bRound2.setBounds(200,350,70,20);
-    this.bRound2.addActionListener(e ->{
-        //
-    });
-    this.pMain.add(bRound2);
+    this.pMain.add(bcrono);
 
 }
 
@@ -246,8 +236,10 @@ public void clearScreen(){
       this.bodyLabels.get(i).setVisible(false);
       this.bodyDD.get(i).setVisible(false);
   }
-    this.bRound1.setVisible(false);
-    this.bRound2.setVisible(false);
+    this.bcrono.setLabel("START");
+    this.timeRound1 = 0;
+    this.timeRound2 = 0;
+    this.bcrono.setVisible(false);
     this.activePilot = false;
     this.activeRace = false;
     this.activeTeam = false;
@@ -490,8 +482,7 @@ public void setVehicleScreen(String mode){
 
 public void setResultsScreen(String mode){
 
-    this.bRound2.setVisible(true);
-    this.bRound1.setVisible(true);
+    this.bcrono.setVisible(true);
 
     this.bodyLabels.get(0).setText("Id:");
     this.bodyLabels.get(0).setVisible(true);
@@ -536,7 +527,8 @@ public void setResultsScreen(String mode){
     
     if(this.activeQry || this.activeDel){
         this.textFields.get(0).setVisible(false);
-       // this.loadIds();
+        this.bcrono.setVisible(false);
+        this.loadIds(this.model.searchResult(),this.bodyDD.get(0));
         this.bodyDD.get(0).setVisible(true);
         this.textFields.get(1).setEnabled(false);
         this.textFields.get(2).setEnabled(false);
@@ -568,7 +560,7 @@ public void setResultsScreen(String mode){
         this.textFields.get(7).setEnabled(false);
         if(this.activeUp){
             this.textFields.get(0).setVisible(false);
-          //  this.loadIds();
+            this.loadIds(this.model.searchResult(),this.bodyDD.get(0));
             this.bodyDD.get(0).setVisible(true);
         }
     }
@@ -698,10 +690,32 @@ public void changeScreen(String screen) {
 
 }
 
-public long cron(){
+public boolean cron(){
+    if(this.bcrono.getLabel().equals("START")) {
+        this.timeRound1 = System.currentTimeMillis();
+        this.bcrono.setLabel("Volta 01");
+        return false;
+    }
 
-    cache = System.currentTimeMillis();
-    return 1;
+    if(this.bcrono.getLabel().equals("Volta 01")) {
+        this.timeRound2 = System.currentTimeMillis();
+        this.timeRound1 = System.currentTimeMillis() - this.timeRound1;
+        this.textFields.get(5).setText(Long.toString(this.timeRound1 / 1000)+" s");
+        this.bcrono.setLabel("Volta 02");
+        return false;
+    }
+    if(this.bcrono.getLabel().equals("Volta 02")) {
+        this.timeRound2 = System.currentTimeMillis() - this.timeRound2;
+        this.textFields.get(6).setText(Long.toString(this.timeRound2 / 1000)+" s");
+        this.bcrono.setLabel("Somar");
+        return false;
+    }
+    if(this.bcrono.getLabel().equals("Somar")){
+        this.textFields.get(7).setText(Long.toString((this.timeRound1 + this.timeRound2)/1000)+" s");
+        return false;
+    }
+
+    return false;
 }
 
 public void keyboardControl(KeyEvent e, char c, String s){
@@ -810,7 +824,6 @@ public void createRegister(){
             power = Integer.parseInt(this.textFields.get(3).getText());
             if(power <= 0 ){
                 System.out.println("Potencia invalida");
-
                 break;
             }
             vehicleTeamId = Integer.parseInt(this.bodyDD.get(4).getSelectedItem());
@@ -818,6 +831,21 @@ public void createRegister(){
             this.changeScreen(this.verifyScreen());
             break;
         case "Resultados":
+            int resRace, resPilot, resTeam, resVehicle, resRound01, resRound02, resTotal;
+            if(this.bcrono.getLabel().equals("Somar") && this.timeRound1 != 0 && this.timeRound2 != 0){
+
+                resRace = Integer.parseInt(this.bodyDD.get(1).getSelectedItem());
+                resPilot = Integer.parseInt(this.bodyDD.get(2).getSelectedItem());
+                resTeam = Integer.parseInt(this.bodyDD.get(3).getSelectedItem());
+                resVehicle = Integer.parseInt(this.bodyDD.get(4).getSelectedItem());
+                resRound01 =  (int) this.timeRound1;
+                resRound02 = (int) this.timeRound2;
+                resTotal = (int) (this.timeRound1 + this.timeRound2) / 1000;
+                this.model.createResult(resRace,resPilot,resTeam,resVehicle,resRound01,resRound02,resTotal);
+                this.changeScreen(this.verifyScreen());
+            }
+
+
             break;
         default:
             System.out.println("Ação nao encontrada");
@@ -919,6 +947,11 @@ public void deleteRegister(){
             }
             break;
         case "Resultados":
+            if(this.bodyDD.get(0).getSelectedItem() != "") {
+                int id = Integer.parseInt(this.bodyDD.get(0).getSelectedItem());
+                this.model.deleteResult(id);
+                this.changeScreen(this.verifyScreen());
+            }
             break;
         default:
             System.out.println("Ação nao encontrada");
@@ -967,6 +1000,20 @@ public void researchRegister(){
             }
             break;
         case "Resultados":
+            if(this.bodyDD.get(0).getSelectedItem() != ""){
+                int id = Integer.parseInt(this.bodyDD.get(0).getSelectedItem());
+                ArrayList<String> answer = this.model.searchResult(id);
+                int second1, second2;
+                second1 = Integer.parseInt(answer.get(4)) / 1000;
+                second2 = Integer.parseInt(answer.get(5)) / 1000;
+                this.textFields.get(1).setText(answer.get(0));
+                this.textFields.get(2).setText(answer.get(1));
+                this.textFields.get(3).setText(answer.get(2));
+                this.textFields.get(4).setText(answer.get(3));
+                this.textFields.get(5).setText(Integer.toString(second1)+" s");
+                this.textFields.get(6).setText(Integer.toString(second2)+" s");
+                this.textFields.get(7).setText(answer.get(6));
+            }
             break;
         default:
             System.out.println("Ação nao encontrada");

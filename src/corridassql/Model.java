@@ -445,14 +445,81 @@ public void deleteVehicle(int id) {
         return answer;
     }
 
-    public void createResult(String model, String brand, int power, int teamId) {
-        String sql = "INSERT INTO vehicles (Vehicle_model, Vehicle_brand, Vehicle_power, Vehicle_team) VALUES (?,?,?,?)";
+    public void createResult(int race, int pilot, int team, int vehicle, int round1, int round2, int total) {
+        String sql = "INSERT INTO race_links (Race_id, Pilot_id, Team_id, Vehicle_id,Fist_round_time,Sec_round_time,Sum_rounds) VALUES (?,?,?,?,?,?,?)";
         try {
             PreparedStatement pst = connection.prepareStatement(sql);
-            pst.setString(1, model);
-            pst.setString(2, brand);
-            pst.setInt(3, power);
-            pst.setInt(4, teamId); // FK para o time
+            pst.setInt(1,race);
+            pst.setInt(2,pilot);
+            pst.setInt(3,team);
+            pst.setInt(4,vehicle);
+            pst.setInt(5,round1);
+            pst.setInt(6,round2);
+            pst.setInt(7,total);
+            pst.executeUpdate();
+        } catch (SQLException ex) { ex.printStackTrace(); }
+    }
+
+    public ArrayList<Integer> searchResult() {
+        // 1. Criamos a lista que armazenará os IDs
+        ArrayList<Integer> ids = new ArrayList<>();
+        String sql = "SELECT Race_link_id FROM race_links";
+
+        try {
+            PreparedStatement pst = connection.prepareStatement(sql);
+            ResultSet rs = pst.executeQuery();
+
+            // 3. Percorre todos os resultados e adiciona na lista
+            while (rs.next()) {
+                ids.add(rs.getInt("Race_link_id"));
+            }
+
+            System.out.println("Total de IDs coletados: " + ids.size());
+
+        } catch (SQLException ex) {
+            System.out.println("Erro ao listar IDs: " + ex.getMessage());
+        }
+
+        // 4. Retorna a lista preenchida (ou vazia se der erro)
+        return ids;
+    }
+
+    public ArrayList<String> searchResult(int linkId) {
+        // 1. Criamos a lista que armazenará os IDs
+        ArrayList<String> answer = new ArrayList<>();
+        String sql = "SELECT * FROM race_links WHERE Race_link_id= ?";
+
+        try {
+            PreparedStatement pst = connection.prepareStatement(sql);
+            pst.setInt(1,linkId);
+            ResultSet rs = pst.executeQuery();
+
+            // 3. Percorre todos os resultados e adiciona na lista
+            if (rs.next()) {
+                answer.add(Integer.toString(rs.getInt("Race_id")));
+                answer.add(Integer.toString(rs.getInt("Pilot_id")));
+                answer.add(Integer.toString(rs.getInt("Team_id")));
+                answer.add(Integer.toString(rs.getInt("Vehicle_id")));
+                answer.add(Integer.toString(rs.getInt("Fist_round_time")));
+                answer.add(Integer.toString(rs.getInt("Sec_round_time")));
+                answer.add(Integer.toString(rs.getInt("Sum_rounds")));
+            }
+
+            System.out.println("Total de IDs coletados: " + answer.size());
+
+        } catch (SQLException ex) {
+            System.out.println("Erro ao listar IDs: " + ex.getMessage());
+        }
+
+        // 4. Retorna a lista preenchida (ou vazia se der erro)
+        return answer;
+    }
+
+    public void deleteResult(int id) {
+        String sql = "DELETE FROM race_links WHERE Race_link_id = ?";
+        try {
+            PreparedStatement pst = connection.prepareStatement(sql);
+            pst.setInt(1, id);
             pst.executeUpdate();
         } catch (SQLException ex) { ex.printStackTrace(); }
     }
