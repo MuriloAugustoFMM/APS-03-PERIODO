@@ -699,11 +699,9 @@ public void changeScreen(String screen) {
 }
 
 public long cron(){
-    if(boolVolta1){
-        this.cache = System.currentTimeMillis() - this.cache;
-        return cache;
-    }
+
     cache = System.currentTimeMillis();
+    return 1;
 }
 
 public void keyboardControl(KeyEvent e, char c, String s){
