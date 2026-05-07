@@ -29,7 +29,7 @@ public class Connection {
 		try{
 		//	Class.forName("sun.jdbc.odbc.JdbcOdbcDriver");
 			Class.forName("com.mysql.jdbc.Driver");
-			con=DriverManager.getConnection(url,"root","");
+			con=DriverManager.getConnection(url,"root","12345");
                         System.out.println("Conexão bem sucedida");
 			return con;
 			}
