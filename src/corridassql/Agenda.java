@@ -19,10 +19,11 @@ public class Agenda extends WindowAdapter implements ActionListener, FocusListen
 	// Declara os componentes gráficos utilizados na janela
 	private Frame janela;
 	private Panel painelEndereco,painelBotoes;
-	private Label lCodigo, lPiloto, lTime, lFone, lCelular, lCronometro;
-	private TextField tCodigo, tNome, tEndereco, tFone, tCelular;
+	private Label lCodigo, lPiloto, lTime, lVolta01, lVolta02, lCronometro, lSoma;
+	private TextField tCodigo, tNome, tTime, tVolta01, tVolta02, tSoma;
 	private TextArea tObs;
 	private Button bNovo, bSalva,bConsulta,bAltera,bExclui,bCrono;
+	private long tempVolta01, tempVolta02;
 	private MenuBar mb;
 	private Menu m1;
 	private MenuItem mi11, mi12;
@@ -60,8 +61,8 @@ public class Agenda extends WindowAdapter implements ActionListener, FocusListen
 
 		// Cria menu para a janela Agenda
 		mb = new MenuBar();
-		m1 = new Menu("Agenda");
-		mi11 = new MenuItem("Cadastro");
+		m1 = new Menu("Corrida");
+		mi11 = new MenuItem("Crud");
 		mi12 = new MenuItem("Sair");
 		m1.add(mi11);
 		m1.addSeparator();
@@ -71,16 +72,21 @@ public class Agenda extends WindowAdapter implements ActionListener, FocusListen
 		mi12.addActionListener(this);
 
 		// Cria Rótulos(Label) do painel Endereço
+		lSoma = new Label("Soma:");
 		lCodigo = new Label("Codigo:");
 		lPiloto = new Label("Piloto:");
 		lTime = new Label("Time:");
-		lFone = new Label("Fone:");
-		lFone.setVisible(false);
-		lCelular = new Label("Celular:");
-		lCelular.setVisible(false);
-		lCronometro = new Label("999s");
+		lVolta01 = new Label("Volta01:");
+
+		lVolta02 = new Label("Volta02:");
+
+		lCronometro = new Label("000s");
 		lCronometro.setFont(new Font(Font.SERIF,1,25));
 		//Cria os campos de texto (TextField) do painel Endereço
+		tSoma = new TextField();
+		tSoma.addFocusListener(this);
+			tSoma.setEnabled(false);
+
 		tCodigo = new TextField(10);
 		tCodigo.addFocusListener(this);
                 tCodigo.setEnabled(false);
@@ -90,16 +96,16 @@ public class Agenda extends WindowAdapter implements ActionListener, FocusListen
 		tNome.addFocusListener(this);
                 tNome.setEnabled(false);
                 
-		tEndereco = new TextField(60);
-                tEndereco.setEnabled(false);
+		tTime = new TextField(60);
+                tTime.setEnabled(false);
                 
-		tFone = new TextField(8);
-                tFone.setEnabled(false);
-				tFone.setVisible(false);
+		tVolta01 = new TextField(8);
+                tVolta01.setEnabled(false);
+
                 
-		tCelular = new TextField(9);
-                tCelular.setEnabled(false);
-				tCelular.setVisible(false);
+		tVolta02 = new TextField(9);
+                tVolta02.setEnabled(false);
+
 
 		// Posiciona e define tamanhos para
 		// Rótulos e campos de texto do painel Endereço
@@ -108,11 +114,13 @@ public class Agenda extends WindowAdapter implements ActionListener, FocusListen
 		lPiloto.setBounds(10,37,50,13);
 		tNome.setBounds(70,34,240,19);
 		lTime.setBounds(10,59,60,13);
-		tEndereco.setBounds(70,56,270,19);
-		lFone.setBounds(10,83,60,13);
-		tFone.setBounds(70,80,86,19);
-		lCelular.setBounds(180,83,50,13);
-		tCelular.setBounds(240,80,80,19);
+		tTime.setBounds(70,56,270,19);
+		lVolta01.setBounds(10,140,50,20);
+		tVolta01.setBounds(60,140,86,19);
+		lVolta02.setBounds(10,170,50,20);
+		tVolta02.setBounds(60,170,86,19);
+		lSoma.setBounds(10,200,50,20);
+		tSoma.setBounds(60,200,86,19);
 		lCronometro.setBounds(10,105,100,25);
 
 		// Cria Checkboxes para sexo no painel Endereço
@@ -142,15 +150,17 @@ public class Agenda extends WindowAdapter implements ActionListener, FocusListen
 		painelEndereco.add(lPiloto);
 		painelEndereco.add(tNome);
 		painelEndereco.add(lTime);
-		painelEndereco.add(tEndereco);
-		painelEndereco.add(lFone);
-		painelEndereco.add(tFone);
-		painelEndereco.add(lCelular);
-		painelEndereco.add(tCelular);
+		painelEndereco.add(tTime);
+		painelEndereco.add(lVolta01);
+		painelEndereco.add(tVolta01);
+		painelEndereco.add(lVolta02);
+		painelEndereco.add(tVolta02);
 		painelEndereco.add(lCronometro);
 		painelEndereco.add(tObs);
 		painelEndereco.add(masculino);
 		painelEndereco.add(feminino);
+		painelEndereco.add(tSoma);
+		painelEndereco.add(lSoma);
 
 		// Cria botões
 		bNovo = new Button("Novo/Limpar");
@@ -167,6 +177,7 @@ public class Agenda extends WindowAdapter implements ActionListener, FocusListen
 		bCrono = new Button();
 		bCrono.setBounds(150,100,70,25);
 		bCrono.setLabel("START");
+		bCrono.addActionListener(this);
 		painelEndereco.add(bCrono);
 
 		// Define o gerenciador de layout para o painel botões
@@ -199,14 +210,14 @@ public class Agenda extends WindowAdapter implements ActionListener, FocusListen
 	public void setNome(String nome){
 		tNome.setText(nome);
 	}
-	public void setEndereco(String endereco){
-		tEndereco.setText(endereco);
+	public void setTime(String endereco){
+		tTime.setText(endereco);
 	}
-	public void setFone(String fone){
-		tFone.setText(fone);
+	public void setVolta01(String fone){
+		tVolta01.setText(fone);
 	}
-	public void setCelular(String celular){
-		tCelular.setText(celular);
+	public void setVolta02(String celular){
+		tVolta02.setText(celular);
 	}
 	public void setObs(String Obs){
 		tObs.setText(Obs);
@@ -217,25 +228,77 @@ public class Agenda extends WindowAdapter implements ActionListener, FocusListen
 			else if (sexo.equals("M")) masculino.setState(true);
 		}
 	}
+	public void displayCron() {
+		new Thread(() -> {
+			long inicio = System.currentTimeMillis() / 1000;
+
+			while (!this.bCrono.getLabel().equals("Somar")) {
+				long agora = System.currentTimeMillis() / 1000;
+				long tempo = agora - inicio;
+
+				// Atualiza a Label
+				this.lCronometro.setText(tempo + " s");
+
+				try {
+					// Faz a thread "dormir" por 1 segundo para não fritar o processador
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					break;
+				}
+			}
+		}).start(); // Inicia a thread separada
+	}
+
+	public boolean cron(){
+
+		if(this.bCrono.getLabel().equals("START")) {
+			displayCron();
+			this.tempVolta01 = System.currentTimeMillis();
+			this.bCrono.setLabel("Volta 01");
+			return false;
+		}
+
+		if(this.bCrono.getLabel().equals("Volta 01")) {
+			this.tempVolta02 = System.currentTimeMillis();
+			this.tempVolta01 = System.currentTimeMillis() - this.tempVolta01;
+			tVolta01.setText(Long.toString(this.tempVolta01 / 1000)+" s");
+			this.bCrono.setLabel("Volta 02");
+			return false;
+		}
+		if(this.bCrono.getLabel().equals("Volta 02")) {
+			this.tempVolta02 = System.currentTimeMillis() - this.tempVolta02;
+			tVolta02.setText(Long.toString(this.tempVolta02 / 1000)+" s");
+			this.bCrono.setLabel("Somar");
+			return false;
+		}
+		if(this.bCrono.getLabel().equals("Somar")){
+			tSoma.setText(Long.toString((this.tempVolta01 + this.tempVolta02)/1000)+" s");
+			return false;
+		}
+
+		return false;
+	}
 	public void setMenuBar(MenuBar mb)	{
 		janela.setMenuBar(mb);
 	}
 
 	//METODOS MUTADORES (Permitem receber o conteúdo dos campos)
-	public String getCodigo(){
-		return tCodigo.getText();
+	public int getCodigo(){
+		if(!tCodigo.getText().equals(""))
+			return Integer.parseInt(tCodigo.getText());
+		return 0;
 	}
 	public String getNome(){
 		return tNome.getText();
 	}
-	public String getEndereco(){
-		return tEndereco.getText();
+	public String getTime(){
+		return tTime.getText();
 	}
-	public String getFone(){
-		return tFone.getText();
+	public String getVolta01(){
+		return tVolta01.getText();
 	}
-	public String getCelular(){
-		return tCelular.getText();
+	public String getVolta02(){
+		return tVolta02.getText();
 	}
 	public String getObs(){
 		return tObs.getText();
@@ -245,6 +308,7 @@ public class Agenda extends WindowAdapter implements ActionListener, FocusListen
 		else if (feminino.getState() == true) return "F";
 		else return " ";
 	}
+	public String getSoma() {return tSoma.getText();}
 	public MenuBar getMenuBar()	{
 		return janela.getMenuBar();
 	}
@@ -295,6 +359,7 @@ public class Agenda extends WindowAdapter implements ActionListener, FocusListen
 		else if (b==bConsulta)   this.botaoConsulta();
 		else if (b==bExclui) this.botaoExclui();
 		else if (b==bAltera)  this.botaoAltera();
+		else if (b==bCrono)	  this.cron();
 	}
 
 //----------------------Seção de acesso oa banco de dados ----------------
@@ -323,7 +388,7 @@ public class Agenda extends WindowAdapter implements ActionListener, FocusListen
 	//Método do botão Salva
 	public void botaoSalva()
 	{
-                tCodigo.setEnabled(true);
+
 		java.sql.Connection con=conecta();
 		//con=conecta();
 		try
@@ -332,7 +397,7 @@ public class Agenda extends WindowAdapter implements ActionListener, FocusListen
 			Statement st=con.createStatement();
 
                         //executa um cmd SQL para inserir os dados na tabela
-			int resultado=st.executeUpdate("insert into agenda (Nome, Endereco, Fone, Celular, Sexo, Obs) values('"+getNome()+"','"+getEndereco()+"','"+getFone()+"','"+getCelular()+"','"+getSexo()+"','"+getObs()+"')");
+			int resultado=st.executeUpdate("insert into resultados (piloto, time, prim_volta, seg_volta, soma) values('"+getNome()+"','"+ getTime()+"','"+ getVolta01()+"','"+ getVolta02()+"','"+getSoma()+"')");
 			//System.out.println("insert into Agenda values('"+getCodigo()+"','"+getNome()+"','"+getEndereco()+"','"+getFone()+"','"+getCelular()+"','"+getSexo()+"','"+getObs()+"');");
 			//fechar cnx
 
@@ -341,7 +406,7 @@ public class Agenda extends WindowAdapter implements ActionListener, FocusListen
 			con.close();
 
 			System.out.println("Registro salvo.");
-                        this.limpaDados();
+			this.limpaDados();
 		}
 
 		catch(SQLException sql){
@@ -357,12 +422,11 @@ public class Agenda extends WindowAdapter implements ActionListener, FocusListen
 		con=conecta();
 		try
 		{
-			String cod=getCodigo();
+			int cod=getCodigo();
 			Statement st=con.createStatement();
-			int resultado=st.executeUpdate("Delete from Agenda where codigo='"+cod+"';");
+			int resultado=st.executeUpdate("Delete from resultados where id='"+cod+"';");
 			con.close();
 			this.limpaDados();
-			tCodigo.requestFocus();
 			System.out.println("registro Excluido");
 		}
 		catch(SQLException sql)
@@ -380,15 +444,18 @@ public class Agenda extends WindowAdapter implements ActionListener, FocusListen
 		bConsulta.setEnabled(true);
 		bExclui.setEnabled(true);
 		bAltera.setEnabled(true);
+
+
                 
-                tCodigo.setEnabled(false);
+                tCodigo.setEnabled(true);
                 tNome.setEnabled(true);
-                tEndereco.setEnabled(true);
-                tFone.setEnabled(true);
-                tCelular.setEnabled(true);
+                tTime.setEnabled(true);
+                //tVolta01.setEnabled(true);
+                //tVolta02.setEnabled(true);
                 tObs.setEnabled(true);
                 masculino.setEnabled(true);
                 feminino.setEnabled(true);
+				lCronometro.setText("000s");
                 
 		tNome.requestFocus();
 	}
@@ -404,21 +471,20 @@ public class Agenda extends WindowAdapter implements ActionListener, FocusListen
 		try
 		{
                         
-			String cod=getCodigo();
-                        String nome=getNome();
+			int cod=getCodigo();
+                        int id=getCodigo();
 			Statement st=con.createStatement();
-			//ResultSet rs=st.executeQuery("Select * from Agenda where codigo ='"+cod+"';");
-                        ResultSet rs=st.executeQuery("Select * from Agenda where Nome like '%"+nome+"%';");
+			ResultSet rs=st.executeQuery("Select * from resultados where id ='"+cod+"';");
+                        //ResultSet rs=st.executeQuery("Select * from Agenda where Nome like '%"+nome+"%';");
 
 			while(rs.next())
 			{
-				this.setCodigo(rs.getString(1));
+				this.setCodigo(Integer.toString(rs.getInt(1)));
 				this.setNome(rs.getString(2));
-				this.setEndereco(rs.getString(3));
-				this.setFone(rs.getString(4));
-				this.setCelular(rs.getString(5));
-				this.setSexo(rs.getString(6));
-				this.setObs(rs.getString(7));
+				this.setTime(rs.getString(3));
+				this.setVolta01(rs.getString(4));
+				this.setVolta02(rs.getString(5));
+				tSoma.setText(rs.getString(6));
 				System.out.println("Registro  encontrado");
 			}
 			con.close();
@@ -438,7 +504,7 @@ public class Agenda extends WindowAdapter implements ActionListener, FocusListen
 		try
 		{
                     try (Statement st = con.createStatement()) {
-                        int resultado=st.executeUpdate("Update Agenda set nome='"+getNome()+"',endereco='"+getEndereco()+"',fone='"+getFone()+"',celular='"+getCelular()+"',sexo='"+getSexo()+"',obs='"+getObs()+"'where codigo='"+getCodigo()+"';");
+                        int resultado=st.executeUpdate("Update resultados set nome='"+getNome()+"',time='"+ getTime()+"',prim_volta='"+ getVolta01()+"',seg_volta='"+ getVolta02()+"',soma='"+tSoma.getText()+"' where id='"+getCodigo()+"';");
                     }
 			con.close();
 			System.out.println("Registro Alterado");
@@ -456,10 +522,12 @@ public class Agenda extends WindowAdapter implements ActionListener, FocusListen
 	public void limpaDados()	{
 		this.setCodigo("");   // move vazio para os campos de texto
 		this.setNome("");
-		this.setEndereco("");
-		this.setFone("");
-		this.setCelular("");
+		this.setTime("");
+		this.setVolta01("");
+		this.setVolta02("");
 		this.setObs("");
+		tSoma.setText("");
+		lCronometro.setText("0s");
 	}
 
 	//Obtem os dados do objeto contato e mostra-os nos seus respectivos
@@ -470,9 +538,9 @@ public class Agenda extends WindowAdapter implements ActionListener, FocusListen
 		//Utiliza o metodo getCodigo do objeto e devolve para o método setCodigo do componente
 		this.setCodigo(contatoAtual.getCodigo());
 		this.setNome(contatoAtual.getNome());
-		this.setEndereco(contatoAtual.getEndereco());
-		this.setFone(contatoAtual.getFone());
-		this.setCelular(contatoAtual.getCelular());
+		this.setTime(contatoAtual.getEndereco());
+		this.setVolta01(contatoAtual.getFone());
+		this.setVolta02(contatoAtual.getCelular());
 		this.setSexo(contatoAtual.getSexo());
 		this.setObs(contatoAtual.getObs());
 	}
